@@ -69,24 +69,21 @@ var OrderPayment = tgbotapi.NewInlineKeyboardMarkup(
 // --------- ADMIN SETTINGS ---------
 var AdminSettings = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Добавить принт", "NewPrint"),
-		tgbotapi.NewInlineKeyboardButtonData("Добавить размер", "NewSize"),
+		tgbotapi.NewInlineKeyboardButtonData("Что-то добавить", "add"),
+		tgbotapi.NewInlineKeyboardButtonData("Что-то удалить", "del"),
 	),
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Добавить цвет", "NewColor"),
-		tgbotapi.NewInlineKeyboardButtonData("Добавить лот", "NewLot"),
+		tgbotapi.NewInlineKeyboardButtonData("Показать все", "all"),
 	),
 )
 
 // ------------------- MAPS -------------------
 var OrderInfoMap map[int64]*db.OrderInfo
-var Products_db map[string]*db.Products
 var InputState int = 0
 
 // ------------------- FUNCS -------------------
 func init() {
 	OrderInfoMap = make(map[int64]*db.OrderInfo)
-	Products_db = make(map[string]*db.Products)
 }
 
 func main() {
@@ -190,9 +187,6 @@ func main() {
 			} else if InputState != 0 {
 				switch InputState {
 				case 1:
-					Products_db[update.Message.Text] = new(db.Products)
-					Products_db[update.Message.Text].PrintName = update.Message.Text
-					InputState = 0
 
 				case 2:
 
@@ -270,26 +264,38 @@ func main() {
 				standartSendMessage(msg)
 
 				// ------------------------------------ CALLBACK FOR ADMIN ------------------------------------
-			case "NewPrint":
+			case "add":
 				standartCallbackCheck()
-				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Введи название принта: ")
+				// msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Меню:\n  1 - Добавить Принт\n  2 - Добавить размер\n  3 - Добавить Цвет")
+				// standartSendMessage(msg)
+				tree := db.Tree{}
+				tree.Add("root/Collection 1/S/3")
+				tree.Add("root/Collection 1/XL/7")
+				tree.Add("root/Collection 2/xx/45")
+				tree.Add("root/Collection 3/Ss/35")
+
+				str := tree.TreePrint(true, "", "")
+				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, str)
 				standartSendMessage(msg)
 
-				InputState = 1
+				// InputState = 1
 
-			case "NewSize":
-				standartCallbackCheck()
-				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Введи размер (Заглавными английскими: S, XLL, ...): ")
-				standartSendMessage(msg)
+				// case "del":
+				// 	standartCallbackCheck()
+				// 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Введи размер (Заглавными английскими: S, XLL, ...): ")
+				// 	standartSendMessage(msg)
 
-				InputState = 2
+				// 	InputState = 2
 
-			case "NewColor":
-				standartCallbackCheck()
+				// case "all":
+				// 	standartCallbackCheck()
+				// 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Введи размер (Заглавными английскими: S, XLL, ...): ")
 
-			case "NewLot":
-				standartCallbackCheck()
-
+				// 	var temp string
+				// 	for key, value := range Products_db {
+				// 		temp = "Принт: " + key + "Размеры: "
+				// 	}
+				// 	standartSendMessage(msg)
 			}
 		}
 	}
