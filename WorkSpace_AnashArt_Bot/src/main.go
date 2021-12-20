@@ -4,7 +4,8 @@
 	Передалать под webhook
 
 Дополнительно:
-	Доделать Систему Админов
+	Доделать Команды для админов
+	Настроить запись логов
  ----------------------------------------------
 */
 
@@ -12,8 +13,10 @@ package main
 
 // ------------------- IMPORTS -------------------
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"AnashArt.bot/db"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -88,6 +91,15 @@ func init() {
 
 func main() {
 
+	tree := db.Tree{}
+
+	file, err := os.Open("log.txt")
+	if err != nil {
+		fmt.Println("Unable to create file:", err)
+		os.Exit(1)
+	}
+	defer file.Close()
+
 	// --------- INIT BOT ---------
 	bot, err := tgbotapi.NewBotAPI(botAPI)
 	if err != nil {
@@ -101,10 +113,16 @@ func main() {
 	// --------- CHECK NEW MESSAGE LOOP ---------
 	for update := range updates {
 
+		saveLogs := func(msg tgbotapi.MessageConfig) {
+			data := []byte(msg.Text)
+			file.Write(data)
+		}
+
 		standartSendMessage := func(msg tgbotapi.MessageConfig) {
 			if _, err = bot.Send(msg); err != nil {
 				panic(err)
 			}
+			saveLogs(msg)
 		}
 
 		standartCallbackCheck := func() {
@@ -187,8 +205,9 @@ func main() {
 			} else if InputState != 0 {
 				switch InputState {
 				case 1:
-
+					tree.Add(update.Message.Text)
 				case 2:
+					tree.Remove(update.Message.Text)
 
 				case 3:
 
@@ -266,36 +285,29 @@ func main() {
 				// ------------------------------------ CALLBACK FOR ADMIN ------------------------------------
 			case "add":
 				standartCallbackCheck()
-				// msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Меню:\n  1 - Добавить Принт\n  2 - Добавить размер\n  3 - Добавить Цвет")
-				// standartSendMessage(msg)
-				tree := db.Tree{}
-				tree.Add("root/Collection 1/S/3")
-				tree.Add("root/Collection 1/XL/7")
-				tree.Add("root/Collection 2/xx/45")
-				tree.Add("root/Collection 3/Ss/35")
-
-				str := tree.TreePrint(true, "", "")
-				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, str)
+				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Стандартная форма ввода:\nroot/НАЗВАНИЕ_КОЛЛЕКЦИИ/РАЗМЕР/ЦВЕТ/КОЛИЧЕСТВО\n\nПример: root/КРЕВЭД/S/Черный/4")
 				standartSendMessage(msg)
 
-				// InputState = 1
+				InputState = 1
 
-				// case "del":
-				// 	standartCallbackCheck()
-				// 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Введи размер (Заглавными английскими: S, XLL, ...): ")
-				// 	standartSendMessage(msg)
+			case "del":
+				standartCallbackCheck()
+				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Стандартная форма ввода:\nroot/НАЗВАНИЕ_КОЛЛЕКЦИИ/РАЗМЕР/ЦВЕТ/КОЛИЧЕСТВО\n\nПример: root/КРЕВЭД/S/Черный/4")
+				standartSendMessage(msg)
 
-				// 	InputState = 2
+				InputState = 2
 
-				// case "all":
-				// 	standartCallbackCheck()
-				// 	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Введи размер (Заглавными английскими: S, XLL, ...): ")
+			case "all":
+				standartCallbackCheck()
+				str := tree.TreePrint(true, "", "")
+				if str != "" {
+					msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, str)
+					standartSendMessage(msg)
+				} else {
+					msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Empty")
+					standartSendMessage(msg)
+				}
 
-				// 	var temp string
-				// 	for key, value := range Products_db {
-				// 		temp = "Принт: " + key + "Размеры: "
-				// 	}
-				// 	standartSendMessage(msg)
 			}
 		}
 	}

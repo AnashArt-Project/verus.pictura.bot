@@ -39,6 +39,27 @@ func (tree Tree) add(frags []string) {
 	nextTree.add(frags[1:])
 }
 
+// Идея в отм чтобы последний элемент массива удалить не трогая остальные
+// Если прировнять к nil то удаляет все дерево
+func (tree Tree) Remove(path string) {
+	frags := strings.Split(path, "/")
+	tree.remove(frags)
+}
+
+func (tree Tree) remove(frags []string) {
+	if len(frags) == 0 {
+		return
+	}
+
+	nextTree, ok := tree[frags[len(frags)-1]]
+	if ok {
+		temp := frags
+		temp[len(frags)-1] = ""
+		nextTree.add(temp)
+		tree[frags[len(frags)-1]] = nextTree
+	}
+}
+
 // ВЫВОД В КОНСОЛЬ
 func (tree Tree) Fprint(w io.Writer, root bool, padding string) {
 	if tree == nil {
@@ -56,7 +77,7 @@ func (tree Tree) Fprint(w io.Writer, root bool, padding string) {
 // ВЫВОД В ТЕЛЕГРАМ
 func (tree Tree) TreePrint(root bool, padding string, msg string) string {
 	if tree == nil {
-		return msg
+		return "I DON'T WANT PIECE! I WANT PROBLEMS, ALWAYS!"
 	}
 	index := 0
 	for k, v := range tree {
