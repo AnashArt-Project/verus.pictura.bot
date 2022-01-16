@@ -50,14 +50,14 @@ func (tree Tree) remove(frags []string) {
 	if len(frags) == 0 {
 		return
 	}
-
-	nextTree, ok := tree[frags[len(frags)-1]]
-	if ok {
-		temp := frags
-		temp[len(frags)-1] = ""
-		nextTree.add(temp)
-		tree[frags[len(frags)-1]] = nextTree
+	tempTree, ok := tree[frags[0]]
+	if len(frags) == 1 {
+		if ok {
+			tempTree = Tree{}
+			tree[frags[0]] = tempTree
+		}
 	}
+	tempTree.remove(frags[1:])
 }
 
 // ВЫВОД В КОНСОЛЬ
