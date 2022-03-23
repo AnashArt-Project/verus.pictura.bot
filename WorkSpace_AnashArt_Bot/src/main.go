@@ -1,50 +1,42 @@
-/*
- ------------------- ЗАДАЧИ -------------------
- Основные:
-	Передалать под webhook
-
-Дополнительно:
-	Доделать Команды для админов
-	Настроить запись логов
- ----------------------------------------------
-*/
-
 package main
+
+// https://github.com/go-telegram-bot-api/telegram-bot-api
 
 // ------------------- IMPORTS -------------------
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
 	"AnashArt.bot/db"
+	"AnashArt.bot/value"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 // ------------------- CONSTS -------------------
 const botAPI = "5015857552:AAGHOqwNAeeJ4Su0Rnlu9UOAz6MaO3IDpng"
 
-const octopusPATH = "img/octopus.jpg"
-const shrimpPATH = "img/shrimp.jpg"
-
 const wlankasperID = 853634511
 const anasharmsID = 726736906
 
-// ------------------- KEYBOARDS-------------------
-// --------- ORDER CHOICE SYSTEM ---------
+// const archiveChatID = 672399763
+
+// ------------------- VARS -------------------
+var OrderInfoMap map[int64]*db.OrderInfo
+var InputState int = 0
+
 var OrderSystem = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("В Telegram", "Telegram"),
-		tgbotapi.NewInlineKeyboardButtonURL("В Insagram", "https://www.instagram.com/anash.art/"),
+		tgbotapi.NewInlineKeyboardButtonData("Бот", "telegram"),
+		tgbotapi.NewInlineKeyboardButtonData("Администратор", "admin"),
 	),
 )
 
 // --------- ORDER CHOICE PRINT ---------
 var OrderPrint = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("МОКРИЙ", "МОКРИЙ"),
-		tgbotapi.NewInlineKeyboardButtonData("КРЕВЭД", "КРЕВЭД"),
+		tgbotapi.NewInlineKeyboardButtonData("Samurai Octopus 🐙", "octopus"),
+		tgbotapi.NewInlineKeyboardButtonData("Samurai Shrimp 🦐", "shrimp"),
 	),
 )
 
@@ -53,18 +45,15 @@ var OrderSize = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData("S", "S"),
 		tgbotapi.NewInlineKeyboardButtonData("M", "M"),
-	),
-	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData("L", "L"),
-		tgbotapi.NewInlineKeyboardButtonData("XL", "XL"),
 	),
 )
 
 // --------- ORDER CHOICE PAYMENT ---------
 var OrderPayment = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		// tgbotapi.NewInlineKeyboardButtonData("Telegram Pay", "TelegramPay"),
-		tgbotapi.NewInlineKeyboardButtonData("Перевод на карту", "Перевод"),
+		tgbotapi.NewInlineKeyboardButtonData("Оплата BUSD", "busd"),
+		tgbotapi.NewInlineKeyboardButtonData("Перевод на карту", "card"),
 	),
 )
 
@@ -80,25 +69,15 @@ var AdminSettings = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
-// ------------------- MAPS -------------------
-var OrderInfoMap map[int64]*db.OrderInfo
-var InputState int = 0
-
-// ------------------- FUNCS -------------------
-func init() {
-	OrderInfoMap = make(map[int64]*db.OrderInfo)
-}
-
 func main() {
 
-	tree := db.Tree{}
-
+	// --------- INIT LOG ---------
 	file, err := os.Open("log.txt")
 	if err != nil {
 		fmt.Println("Unable to create file:", err)
 		os.Exit(1)
 	}
-	defer file.Close()
+	// defer file.Close()
 
 	// --------- INIT BOT ---------
 	bot, err := tgbotapi.NewBotAPI(botAPI)
@@ -110,8 +89,117 @@ func main() {
 	u.Timeout = 60
 	updates := bot.GetUpdatesChan(u)
 
-	// --------- CHECK NEW MESSAGE LOOP ---------
+	// tree := db.Node{}
+
+	OrderInfoMap = make(map[int64]*db.OrderInfo)
+
+	// --------- MESSAGE LOOP ---------
 	for update := range updates {
+
+		// sendPhotoPrints := func() {
+		// 	cfg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, []interface{}{
+		// 		tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_octopus)),
+		// 		tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_many)),
+		// 	})
+		// 	messages, err := bot.SendMediaGroup(cfg)
+
+		// 	if err != nil {
+		// 		log.Panic(err)
+		// 	}
+
+		// 	if messages == nil {
+		// 		log.Panic("No received messages")
+		// 	}
+
+		// 	if len(messages) != len(cfg.Media) {
+		// 		log.Panic("Different number of messages: ", len(messages))
+		// 	}
+
+		// cfg = tgbotapi.NewMediaGroup(update.Message.Chat.ID, []interface{}{
+		// 	tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_shrimp)),
+		// 	tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_many)),
+		// })
+		// messages, err = bot.SendMediaGroup(cfg)
+
+		// if err != nil {
+		// 	log.Panic(err)
+		// }
+
+		// if messages == nil {
+		// 	log.Panic("No received messages")
+		// }
+
+		// if len(messages) != len(cfg.Media) {
+		// 	log.Panic("Different number of messages: ", len(messages))
+		// }
+		// }
+
+		sendPhotoOctopus := func() {
+			cfg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, []interface{}{
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_octopus)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_front)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_back)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_zoom)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_many)),
+			})
+			messages, err := bot.SendMediaGroup(cfg)
+
+			if err != nil {
+				log.Panic(err)
+			}
+
+			if messages == nil {
+				log.Panic("No received messages")
+			}
+
+			if len(messages) != len(cfg.Media) {
+				log.Panic("Different number of messages: ", len(messages))
+			}
+		}
+
+		sendPhotoShrimp := func() {
+			cfg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, []interface{}{
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_shrimp)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_front)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_back)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_zoom)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_many)),
+			})
+			messages, err := bot.SendMediaGroup(cfg)
+
+			if err != nil {
+				log.Panic(err)
+			}
+
+			if messages == nil {
+				log.Panic("No received messages")
+			}
+
+			if len(messages) != len(cfg.Media) {
+				log.Panic("Different number of messages: ", len(messages))
+			}
+		}
+
+		sendPhotoSize := func() {
+			cfg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, []interface{}{
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Size_s)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Size_m)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Size_l)),
+			})
+			messages, err := bot.SendMediaGroup(cfg)
+
+			if err != nil {
+				log.Panic(err)
+			}
+
+			if messages == nil {
+				log.Panic("No received messages")
+			}
+
+			if len(messages) != len(cfg.Media) {
+				log.Panic("Different number of messages: ", len(messages))
+			}
+		}
 
 		saveLogs := func(msg tgbotapi.MessageConfig) {
 			data := []byte(msg.Text)
@@ -138,7 +226,7 @@ func main() {
 			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Теперь введите ваш email")
 			standartSendMessage(msg)
 
-			InputState = 5
+			InputState = 1
 		}
 
 		orderSetPrint := func(print string) {
@@ -146,83 +234,63 @@ func main() {
 			OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Print = print
 			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Теперь нужно выбрать свой размер")
 			msg.ReplyMarkup = OrderSize
+			sendPhotoSize()
 			standartSendMessage(msg)
 		}
 
-		sendPhoto := func(path string) {
-			photoBytes, err := ioutil.ReadFile(path)
-			if err != nil {
-				panic(err)
-			}
-			photoFileBytes := tgbotapi.FileBytes{
-				Name:  "picture",
-				Bytes: photoBytes,
-			}
-			bot.Send(tgbotapi.NewPhoto(update.Message.Chat.ID, photoFileBytes))
-		}
-
 		if update.Message != nil {
+			// ---------- Проверка команд ----------
 			if update.Message.IsCommand() {
-				if update.Message.Command() == "start" {
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет! Я бот AnashArt и вот что я умею:\n\n  /start - Начальное меню 🧾\n  /show - Покажу все наши коллекции ✨\n  /price - Покажу Прайс-Лист 💸\n  /order - Оформлю заказ 📦\n  /help - Позову Администратора ⁉️\n\nНаш официальный сайт: https://AnashArt.ru\nНаш официальный Instagram: https://www.instagram.com/anash.art/")
+				switch update.Message.Command() {
+				case "start":
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, value.Menu)
+					standartSendMessage(msg)
+				case "show":
+					sendPhotoOctopus()
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Samurai Octopus 🐙")
+					bot.Send(msg)
+
+					sendPhotoShrimp()
+					msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Samurai Shrimp 🦐")
+					bot.Send(msg)
+
+				case "price":
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, value.Price)
 					standartSendMessage(msg)
 
-				} else if update.Message.Command() == "show" {
-					sendPhoto(octopusPATH)
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Принт МОКРИЙ")
-					standartSendMessage(msg)
+				case "size":
+					sendPhotoSize()
 
-					sendPhoto(shrimpPATH)
-					msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Принт МОКРИЙ")
+				case "order":
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Вы можете заказать что либо прямо здесь или обратиться к администратору")
+					msg.ReplyMarkup = OrderSystem
 					standartSendMessage(msg)
-
-				} else if update.Message.Command() == "help" {
+				case "help":
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "В скором времени с вами свяжется наш администратор ...")
 					standartSendMessage(msg)
 
 					bot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.Message.From.UserName))
 					bot.Send(tgbotapi.NewMessage(anasharmsID, "PROBLEM @"+update.Message.From.UserName))
 
-				} else if update.Message.Command() == "price" {
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Price List:\n\n  Футболка 'МОКРИЙ' - 3590\n  Футболка 'КРЕВЭД' - 3590")
-					standartSendMessage(msg)
-
-				} else if update.Message.Command() == "order" {
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Вы можете заказать что либо прямо здесь или обратиться к администратору в нашем Instagram")
-					msg.ReplyMarkup = OrderSystem
-					standartSendMessage(msg)
-
-				} else if update.Message.Command() == "admin" && update.Message.Chat.ID == wlankasperID || update.Message.Chat.ID == wlankasperID {
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет Насть)")
-					msg.ReplyMarkup = AdminSettings
-					standartSendMessage(msg)
-
-				} else {
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Я даже не знаю как на это ответить(")
-					standartSendMessage(msg)
+				case "admin":
+					if update.Message.Chat.ID == wlankasperID || update.Message.Chat.ID == anasharmsID {
+						msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет Насть)")
+						msg.ReplyMarkup = AdminSettings
+						standartSendMessage(msg)
+					}
 				}
-
 			} else if InputState != 0 {
 				switch InputState {
+				// --------- EMAIL---------
 				case 1:
-					tree.Add(update.Message.Text)
-				case 2:
-					tree.Remove(update.Message.Text)
-
-				case 3:
-
-				case 4:
-
-					// --------- EMAIL---------
-				case 5:
 					OrderInfoMap[update.Message.Chat.ID].Email = update.Message.Text
 
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Отлично, остался последний шаг!\n\nВведите адрес доставки и телефон в формате: \nГород, Улица, Дом, Номер_телефона_для_связи")
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Отлично, остался последний шаг!\n\nВведите адрес доставки и телефон в формате: \nГород,   Улица,   Дом,   Номер_телефона_для_связи")
 					standartSendMessage(msg)
-					InputState = 6
+					InputState = 2
 
-					// --------- ADDRES---------
-				case 6:
+				// --------- ADDRES---------
+				case 2:
 					OrderInfoMap[update.Message.Chat.ID].Addres = update.Message.Text
 
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Отлично! Проверьте свой заказ и выберите способ оплаты\n\nВаш заказ:\nПринт - "+OrderInfoMap[update.Message.Chat.ID].Print+"\nРазмер - "+OrderInfoMap[update.Message.Chat.ID].Size+"\nEmail - "+OrderInfoMap[update.Message.Chat.ID].Email+"\nДоставка - "+OrderInfoMap[update.Message.Chat.ID].Addres)
@@ -241,7 +309,7 @@ func main() {
 		if update.CallbackQuery != nil {
 			switch update.CallbackQuery.Data {
 
-			case "Telegram":
+			case "telegram":
 				standartCallbackCheck()
 
 				OrderInfoMap[update.CallbackQuery.Message.Chat.ID] = new(db.OrderInfo)
@@ -251,11 +319,19 @@ func main() {
 				msg.ReplyMarkup = OrderPrint
 				standartSendMessage(msg)
 
-			case "МОКРИЙ":
-				orderSetPrint("МОКРИЙ")
+			case "admin":
+				standartCallbackCheck()
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "В скором времени с вами свяжется наш администратор ...")
+				standartSendMessage(msg)
 
-			case "КРЕВЭД":
-				orderSetPrint("КРЕВЭД")
+				bot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.Message.From.UserName))
+				bot.Send(tgbotapi.NewMessage(anasharmsID, "PROBLEM @"+update.Message.From.UserName))
+
+			case "octopus":
+				orderSetPrint("Samurai Octopus 🐙")
+
+			case "shrimp":
+				orderSetPrint("Samurai Shrimp 🦐")
 
 			case "S":
 				orderSetSize("S")
@@ -266,14 +342,11 @@ func main() {
 			case "L":
 				orderSetSize("L")
 
-			case "XL":
-				orderSetSize("XL")
-
-			case "Перевод":
+			case "card":
 				standartCallbackCheck()
 
 				OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Payment = "Перевод на карту"
-				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "СберБанк - 1000 1000 1000 1000\nТинькофф - 1000 1000 1000 1000\n\nПосле перевода вам напишет наш Администратор чтобы подтвердить заказ и сообщит ближайщую дату доставки")
+				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Тинькофф - 5536 9140 3655 4214 (Анастасия Владимировна)\n\nПосле перевода вам напишет наш Администратор чтобы подтвердить заказ и сообщит ближайщую дату доставки")
 				standartSendMessage(msg)
 
 				msg = tgbotapi.NewMessage(wlankasperID, "NEW ORDER\n\nName: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].UserName+"\nEmail: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Email+"\nAddres: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Addres+"\nPrint: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Print+"\nSize: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Size+"\nPayment: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Payment+"\nStatus: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Status)
@@ -281,6 +354,8 @@ func main() {
 
 				msg = tgbotapi.NewMessage(anasharmsID, "NEW ORDER\n\nName: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].UserName+"\nEmail: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Email+"\nAddres: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Addres+"\nPrint: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Print+"\nSize: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Size+"\nPayment: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Payment+"\nStatus: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Status)
 				standartSendMessage(msg)
+			case "busd":
+				// TODO
 
 				// ------------------------------------ CALLBACK FOR ADMIN ------------------------------------
 			case "add":
@@ -299,15 +374,15 @@ func main() {
 
 			case "all":
 				standartCallbackCheck()
-				str := tree.TreePrint(true, "", "")
-				if str != "" {
-					msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, str)
-					standartSendMessage(msg)
-				} else {
-					msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Empty")
-					standartSendMessage(msg)
-				}
-
+				// 	str := tree.TreePrint(true, "", "")
+				// 	if str != "" {
+				// 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, str)
+				// 		standartSendMessage(msg)
+				// 	} else {
+				// 		msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Empty")
+				// 		standartSendMessage(msg)
+				// 	}
+				// }
 			}
 		}
 	}
