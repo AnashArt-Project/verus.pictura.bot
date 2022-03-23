@@ -52,7 +52,7 @@ var OrderSize = tgbotapi.NewInlineKeyboardMarkup(
 // --------- ORDER CHOICE PAYMENT ---------
 var OrderPayment = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Оплата BUSD", "busd"),
+		// tgbotapi.NewInlineKeyboardButtonData("Оплата BUSD", "busd"),
 		tgbotapi.NewInlineKeyboardButtonData("Перевод на карту", "card"),
 	),
 )
@@ -96,43 +96,43 @@ func main() {
 	// --------- MESSAGE LOOP ---------
 	for update := range updates {
 
-		// sendPhotoPrints := func() {
-		// 	cfg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, []interface{}{
-		// 		tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_octopus)),
-		// 		tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_many)),
-		// 	})
-		// 	messages, err := bot.SendMediaGroup(cfg)
+		sendPhotoPrints := func(sendTo int64) {
+			cfg := tgbotapi.NewMediaGroup(sendTo, []interface{}{
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_octopus)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_many)),
+			})
+			messages, err := bot.SendMediaGroup(cfg)
 
-		// 	if err != nil {
-		// 		log.Panic(err)
-		// 	}
+			if err != nil {
+				log.Panic(err)
+			}
 
-		// 	if messages == nil {
-		// 		log.Panic("No received messages")
-		// 	}
+			if messages == nil {
+				log.Panic("No received messages")
+			}
 
-		// 	if len(messages) != len(cfg.Media) {
-		// 		log.Panic("Different number of messages: ", len(messages))
-		// 	}
+			if len(messages) != len(cfg.Media) {
+				log.Panic("Different number of messages: ", len(messages))
+			}
 
-		// cfg = tgbotapi.NewMediaGroup(update.Message.Chat.ID, []interface{}{
-		// 	tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_shrimp)),
-		// 	tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_many)),
-		// })
-		// messages, err = bot.SendMediaGroup(cfg)
+			cfg = tgbotapi.NewMediaGroup(sendTo, []interface{}{
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_shrimp)),
+				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_many)),
+			})
+			messages, err = bot.SendMediaGroup(cfg)
 
-		// if err != nil {
-		// 	log.Panic(err)
-		// }
+			if err != nil {
+				log.Panic(err)
+			}
 
-		// if messages == nil {
-		// 	log.Panic("No received messages")
-		// }
+			if messages == nil {
+				log.Panic("No received messages")
+			}
 
-		// if len(messages) != len(cfg.Media) {
-		// 	log.Panic("Different number of messages: ", len(messages))
-		// }
-		// }
+			if len(messages) != len(cfg.Media) {
+				log.Panic("Different number of messages: ", len(messages))
+			}
+		}
 
 		sendPhotoOctopus := func() {
 			cfg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, []interface{}{
@@ -180,8 +180,8 @@ func main() {
 			}
 		}
 
-		sendPhotoSize := func() {
-			cfg := tgbotapi.NewMediaGroup(update.Message.Chat.ID, []interface{}{
+		sendPhotoSize := func(sendTo int64) {
+			cfg := tgbotapi.NewMediaGroup(sendTo, []interface{}{
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Size_s)),
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Size_m)),
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Size_l)),
@@ -234,7 +234,7 @@ func main() {
 			OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Print = print
 			msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Теперь нужно выбрать свой размер")
 			msg.ReplyMarkup = OrderSize
-			sendPhotoSize()
+			sendPhotoSize(update.CallbackQuery.Message.Chat.ID)
 			standartSendMessage(msg)
 		}
 
@@ -259,7 +259,7 @@ func main() {
 					standartSendMessage(msg)
 
 				case "size":
-					sendPhotoSize()
+					sendPhotoSize(update.Message.Chat.ID)
 
 				case "order":
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Вы можете заказать что либо прямо здесь или обратиться к администратору")
@@ -317,6 +317,7 @@ func main() {
 
 				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Выбирай какой принт ты хочешь")
 				msg.ReplyMarkup = OrderPrint
+				sendPhotoPrints(update.CallbackQuery.Message.Chat.ID)
 				standartSendMessage(msg)
 
 			case "admin":
