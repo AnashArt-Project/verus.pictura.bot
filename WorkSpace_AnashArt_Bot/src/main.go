@@ -289,11 +289,11 @@ func main() {
 					standartSendMessage(msg)
 					InputState = 2
 
-				// --------- ADDRES---------
+				// --------- ADDRESS---------
 				case 2:
-					OrderInfoMap[update.Message.Chat.ID].Addres = update.Message.Text
+					OrderInfoMap[update.Message.Chat.ID].Address = update.Message.Text
 
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Отлично! Проверьте свой заказ и выберите способ оплаты\n\nВаш заказ:\nПринт - "+OrderInfoMap[update.Message.Chat.ID].Print+"\nРазмер - "+OrderInfoMap[update.Message.Chat.ID].Size+"\nEmail - "+OrderInfoMap[update.Message.Chat.ID].Email+"\nДоставка - "+OrderInfoMap[update.Message.Chat.ID].Addres)
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Отлично! Проверьте свой заказ и выберите способ оплаты\n\nВаш заказ:\nПринт - "+OrderInfoMap[update.Message.Chat.ID].Print+"\nРазмер - "+OrderInfoMap[update.Message.Chat.ID].Size+"\nEmail - "+OrderInfoMap[update.Message.Chat.ID].Email+"\nДоставка - "+OrderInfoMap[update.Message.Chat.ID].Address)
 					msg.ReplyMarkup = OrderPayment
 					standartSendMessage(msg)
 
@@ -350,10 +350,10 @@ func main() {
 				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "Тинькофф - 5536 9140 3655 4214 (Анастасия Владимировна)\n\nПосле перевода вам напишет наш Администратор чтобы подтвердить заказ и сообщит ближайщую дату доставки")
 				standartSendMessage(msg)
 
-				msg = tgbotapi.NewMessage(wlankasperID, "NEW ORDER\n\nName: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].UserName+"\nEmail: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Email+"\nAddres: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Addres+"\nPrint: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Print+"\nSize: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Size+"\nPayment: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Payment+"\nStatus: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Status)
+				msg = tgbotapi.NewMessage(wlankasperID, "NEW ORDER\n\nName: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].UserName+"\nEmail: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Email+"\nAddress: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Address+"\nPrint: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Print+"\nSize: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Size+"\nPayment: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Payment+"\nStatus: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Status)
 				standartSendMessage(msg)
 
-				msg = tgbotapi.NewMessage(anasharmsID, "NEW ORDER\n\nName: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].UserName+"\nEmail: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Email+"\nAddres: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Addres+"\nPrint: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Print+"\nSize: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Size+"\nPayment: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Payment+"\nStatus: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Status)
+				msg = tgbotapi.NewMessage(anasharmsID, "NEW ORDER\n\nName: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].UserName+"\nEmail: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Email+"\nAddress: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Address+"\nPrint: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Print+"\nSize: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Size+"\nPayment: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Payment+"\nStatus: "+OrderInfoMap[update.CallbackQuery.Message.Chat.ID].Status)
 				standartSendMessage(msg)
 			case "busd":
 				// TODO

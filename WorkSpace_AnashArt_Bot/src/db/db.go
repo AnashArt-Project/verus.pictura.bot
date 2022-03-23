@@ -8,7 +8,7 @@ type OrderInfo struct {
 	Email    string
 	Print    string
 	Size     string
-	Addres   string
+	Address  string
 	Payment  string
 	Status   string
 }
