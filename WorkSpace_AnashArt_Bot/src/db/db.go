@@ -1,137 +1,64 @@
 package db
 
-import (
-	"fmt"
-	"io"
-	"strings"
-)
-
-type OrderInfo struct {
-	UserName string
-	Email    string
-	Print    string
-	Size     string
-	Addres   string
-	Payment  string
-	Status   string
-}
-
 // ---------------- Data Base ----------------
 
-type Tree map[string]Tree
-
-func (tree Tree) Add(path string) {
-	frags := strings.Split(path, "/")
-	tree.add(frags)
+// ---------------- Order Blank Struct ----------------
+type OrderInfo struct {
+	UserName    string
+	Email       string
+	Print       string
+	Size        string
+	ContactInfo string
+	Payment     string
+	Status      string
 }
 
-func (tree Tree) add(frags []string) {
-	if len(frags) == 0 {
-		return
-	}
+// ---------------- General db of Store ----------------
 
-	nextTree, ok := tree[frags[0]]
-	if !ok {
-		nextTree = Tree{}
-		tree[frags[0]] = nextTree
-	}
-
-	nextTree.add(frags[1:])
+type Node struct {
+	key      string
+	value    string
+	children []*Node
 }
 
-// Идея в отм чтобы последний элемент массива удалить не трогая остальные
-// Если прировнять к nil то удаляет все дерево
-func (tree Tree) Remove(path string) {
-	frags := strings.Split(path, "/")
-	tree.remove(frags)
-}
-
-func (tree Tree) remove(frags []string) {
-	if len(frags) == 0 {
-		return
-	}
-	tempTree, ok := tree[frags[0]]
-	if len(frags) == 1 {
-		if ok {
-			tempTree = Tree{}
-			tree[frags[0]] = tempTree
+func findById(root *Node, key string) *Node {
+	queue := make([]*Node, 0)
+	queue = append(queue, root)
+	for len(queue) > 0 {
+		nextUp := queue[0]
+		queue = queue[1:]
+		if nextUp.key == key {
+			return nextUp
+		}
+		if len(nextUp.children) > 0 {
+			for _, child := range nextUp.children {
+				queue = append(queue, child)
+			}
 		}
 	}
-	tempTree.remove(frags[1:])
+	return nil
 }
 
-// ВЫВОД В КОНСОЛЬ
-func (tree Tree) Fprint(w io.Writer, root bool, padding string) {
-	if tree == nil {
-		return
-	}
+// func (node *Node) remove() {
+// 	// Remove the node from it's parents children collection
+// 	for idx, sibling := range n.parent.children {
+// 		if sibling == node {
+// 			node.parent.children = append(
+// 				node.parent.children[:idx],
+// 				node.parent.children[idx+1:]...,
+// 			)
+// 		}
+// 	}
 
-	index := 0
-	for k, v := range tree {
-		fmt.Fprintf(w, "%s%s\n", padding+getPadding(root, getBoxType(index, len(tree))), k)
-		v.Fprint(w, false, padding+getPadding(root, getBoxTypeExternal(index, len(tree))))
-		index++
-	}
-}
+// 	// If the node has any children, set their parent to nil and set the node's children collection to nil
+// 	if len(node.children) != 0 {
+// 		for _, child := range node.children {
+// 			child.parent = nil
+// 		}
+// 		node.children = nil
+// 	}
+// }
 
-// ВЫВОД В ТЕЛЕГРАМ
-func (tree Tree) TreePrint(root bool, padding string, msg string) string {
-	if tree == nil {
-		return "I DON'T WANT PIECE! I WANT PROBLEMS, ALWAYS!"
-	}
-	index := 0
-	for k, v := range tree {
-		msg += padding + getPadding(root, getBoxType(index, len(tree))) + k + "\n"
-		msg = v.TreePrint(false, padding+getPadding(root, getBoxTypeExternal(index, len(tree))), msg)
-		index++
-	}
-	return msg
-}
+// https://stackoverflow.com/questions/16877427/how-to-implement-a-non-binary-tree
 
-type BoxType int
-
-const (
-	Regular BoxType = iota
-	Last
-	AfterLast
-	Between
-)
-
-func (boxType BoxType) String() string {
-	switch boxType {
-	case Regular:
-		return "\u251c" // ├
-	case Last:
-		return "\u2514" // └
-	case AfterLast:
-		return " "
-	case Between:
-		return "\u2502" // │
-	default:
-		panic("invalid box type")
-	}
-}
-
-func getBoxType(index int, len int) BoxType {
-	if index+1 == len {
-		return Last
-	} else if index+1 > len {
-		return AfterLast
-	}
-	return Regular
-}
-
-func getBoxTypeExternal(index int, len int) BoxType {
-	if index+1 == len {
-		return AfterLast
-	}
-	return Between
-}
-
-func getPadding(root bool, boxType BoxType) string {
-	if root {
-		return ""
-	}
-
-	return boxType.String() + " "
-}
+// https://ieftimov.com/posts/golang-datastructures-trees/#:~:text=A%20tree%20is%20a%20data,nodes%20that%20form%20a%20hierarchy.
