@@ -4,13 +4,13 @@ package db
 
 // ---------------- Order Blank Struct ----------------
 type OrderInfo struct {
-	UserName string
-	Email    string
-	Print    string
-	Size     string
-	Address  string
-	Payment  string
-	Status   string
+	UserName    string
+	Email       string
+	Print       string
+	Size        string
+	ContactInfo string
+	Payment     string
+	Status      string
 }
 
 // ---------------- General db of Store ----------------
