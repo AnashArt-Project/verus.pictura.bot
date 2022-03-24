@@ -5,7 +5,6 @@ package main
 // ------------------- IMPORTS -------------------
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -115,16 +114,14 @@ func main() {
 			})
 			messages, err := NewBot.SendMediaGroup(cfg)
 
-			if err != nil {
-				log.Panic(err)
-			}
+			logger.ForError(err)
 
 			if messages == nil {
-				log.Panic("No received messages")
+				logger.ForString("No received messages")
 			}
 
 			if len(messages) != len(cfg.Media) {
-				log.Panic("Different number of messages: ", len(messages))
+				logger.ForString(fmt.Sprintf("Different number of messages: %v", len(messages)))
 			}
 
 			cfg = tgbotapi.NewMediaGroup(sendTo, []interface{}{
@@ -133,16 +130,14 @@ func main() {
 			})
 			messages, err = NewBot.SendMediaGroup(cfg)
 
-			if err != nil {
-				log.Panic(err)
-			}
+			logger.ForError(err)
 
 			if messages == nil {
-				log.Panic("No received messages")
+				logger.ForString("No received messages")
 			}
 
 			if len(messages) != len(cfg.Media) {
-				log.Panic("Different number of messages: ", len(messages))
+				logger.ForString(fmt.Sprintf("Different number of messages: %v", len(messages)))
 			}
 		}
 
@@ -156,16 +151,14 @@ func main() {
 			})
 			messages, err := NewBot.SendMediaGroup(cfg)
 
-			if err != nil {
-				log.Panic(err)
-			}
+			logger.ForError(err)
 
 			if messages == nil {
-				log.Panic("No received messages")
+				logger.ForString("No received messages")
 			}
 
 			if len(messages) != len(cfg.Media) {
-				log.Panic("Different number of messages: ", len(messages))
+				logger.ForString(fmt.Sprintf("Different number of messages: %v", len(messages)))
 			}
 		}
 
@@ -179,16 +172,14 @@ func main() {
 			})
 			messages, err := NewBot.SendMediaGroup(cfg)
 
-			if err != nil {
-				log.Panic(err)
-			}
+			logger.ForError(err)
 
 			if messages == nil {
-				log.Panic("No received messages")
+				logger.ForString("No received messages")
 			}
 
 			if len(messages) != len(cfg.Media) {
-				log.Panic("Different number of messages: ", len(messages))
+				logger.ForString(fmt.Sprintf("Different number of messages: %v", len(messages)))
 			}
 		}
 
@@ -200,16 +191,14 @@ func main() {
 			})
 			messages, err := NewBot.SendMediaGroup(cfg)
 
-			if err != nil {
-				log.Panic(err)
-			}
+			logger.ForError(err)
 
 			if messages == nil {
-				log.Panic("No received messages")
+				logger.ForString("No received messages")
 			}
 
 			if len(messages) != len(cfg.Media) {
-				log.Panic("Different number of messages: ", len(messages))
+				logger.ForString(fmt.Sprintf("Different number of messages: %v", len(messages)))
 			}
 		}
 		standartSendMessage := func(msg tgbotapi.MessageConfig) {
