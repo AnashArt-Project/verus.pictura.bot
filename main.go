@@ -5,7 +5,6 @@ package main
 // ------------------- IMPORTS -------------------
 import (
 	"fmt"
-	"net/http"
 	"time"
 
 	"verus.pictura/src/db"
@@ -87,10 +86,15 @@ func main() {
 	// --------- INIT BOT ---------
 	logger.ForString(fmt.Sprintf("OK, %v, %v", time.Now().Unix(), time.Now().Weekday()))
 	logger.ForError(BotErr)
-	setWebhook(NewBot)
+	// setWebhook(NewBot)
 
-	updates := NewBot.ListenForWebhook("/" + NewBot.Token)
-	go http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
+	// updates := NewBot.ListenForWebhook("/" + NewBot.Token)
+	// go http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
+
+	NewBot.Debug = true
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+	updates := NewBot.GetUpdatesChan(u)
 
 	// --------- INIT STRUCTS ---------
 	OrderInfoMap = make(map[int64]*db.OrderInfo)
