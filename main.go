@@ -8,15 +8,16 @@ import (
 	"net/http"
 	"time"
 
-	"AnashArt.bot/db"
-	"AnashArt.bot/logger"
-	"AnashArt.bot/value"
+	"/root/db"
+	"/root/logger"
+	"/root/value"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 // ------------------- CONSTS -------------------
-const CERT_PATH = "/root/WorkSpace_AnashArt_Bot/src/cert.pem"
-const KEY_PATH = "/root/WorkSpace_AnashArt_Bot/src/cert.key"
+const CERT_PATH = "/root/WorkSpace_AnashArt_Bot/certs/cert.pem"
+const KEY_PATH = "/root/WorkSpace_AnashArt_Bot/certs/cert.key"
 const BOT_TOKEN = "5267887349:AAEr95a2kk8B78h5CO2yv8E-IN9W2FxERi4"
 const BOT_ADDRESS = "65.108.154.134"
 const BOT_PORT = "8443"
