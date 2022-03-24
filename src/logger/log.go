@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"bytes"
 	"log"
 	"os"
 )
@@ -15,12 +14,8 @@ func ForError(er error) {
 	if er != nil {
 		LogFile.Fatalln(er)
 	}
-	var stderr bytes.Buffer
-	LogFile.Println(&stderr)
 }
 
 func ForString(st string) {
 	LogFile.Println(st)
-	var stderr bytes.Buffer
-	LogFile.Println(&stderr)
 }

@@ -15,69 +15,60 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-// ------------------- CONSTS -------------------
-const CERT_PATH = "/root/WorkSpace_AnashArt_Bot/certs/cert.pem"
-const KEY_PATH = "/root/WorkSpace_AnashArt_Bot/certs/cert.key"
-const BOT_TOKEN = "5267887349:AAEr95a2kk8B78h5CO2yv8E-IN9W2FxERi4"
-const BOT_ADDRESS = "65.108.154.134"
-const BOT_PORT = "8443"
-const TELEGRAM_URL = "https://t.me/VerusPicturaBot"
+const (
+	CERT_PATH    = "/root/WorkSpace_AnashArt_Bot/certs/cert.pem"
+	KEY_PATH     = "/root/WorkSpace_AnashArt_Bot/certs/cert.key"
+	BOT_TOKEN    = "5267887349:AAEr95a2kk8B78h5CO2yv8E-IN9W2FxERi4"
+	BOT_ADDRESS  = "65.108.154.134"
+	BOT_PORT     = "8443"
+	TELEGRAM_URL = "https://t.me/VerusPicturaBot"
 
-const wlankasperID = 853634511
-const anasharmsID = 726736906
-
-// const archiveChatID = 672399763
-
-// ------------------- VARS -------------------
-var OrderInfoMap map[int64]*db.OrderInfo
-var InputState int = 0
-
-var OrderSystem = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Бот", "telegram"),
-		tgbotapi.NewInlineKeyboardButtonData("Администратор", "admin"),
-	),
-)
-
-// --------- ORDER CHOICE PRINT ---------
-var OrderPrint = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Samurai Octopus 🐙", "octopus"),
-		tgbotapi.NewInlineKeyboardButtonData("Samurai Shrimp 🦐", "shrimp"),
-	),
-)
-
-// --------- ORDER CHOICE SIZE ---------
-var OrderSize = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("S", "S"),
-		tgbotapi.NewInlineKeyboardButtonData("M", "M"),
-		tgbotapi.NewInlineKeyboardButtonData("L", "L"),
-	),
-)
-
-// --------- ORDER CHOICE PAYMENT ---------
-var OrderPayment = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		// tgbotapi.NewInlineKeyboardButtonData("Оплата BUSD", "busd"),
-		tgbotapi.NewInlineKeyboardButtonData("Перевод на карту", "card"),
-	),
-)
-
-// ------------------------------------ ADMIN KEYBOARDS ------------------------------------
-// --------- ADMIN SETTINGS ---------
-var AdminSettings = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Что-то добавить", "add"),
-		tgbotapi.NewInlineKeyboardButtonData("Что-то удалить", "del"),
-	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Показать все", "all"),
-	),
+	wlankasperID = 853634511
+	anasharmsID  = 726736906
 )
 
 var (
 	NewBot, BotErr = tgbotapi.NewBotAPI(BOT_TOKEN)
+	OrderInfoMap   map[int64]*db.OrderInfo
+	InputState     int = 0
+
+	OrderSystem = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Бот", "telegram"),
+			tgbotapi.NewInlineKeyboardButtonData("Администратор", "admin"),
+		),
+	)
+
+	OrderPrint = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Samurai Octopus 🐙", "octopus"),
+			tgbotapi.NewInlineKeyboardButtonData("Samurai Shrimp 🦐", "shrimp"),
+		),
+	)
+
+	OrderSize = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("S", "S"),
+			tgbotapi.NewInlineKeyboardButtonData("M", "M"),
+			tgbotapi.NewInlineKeyboardButtonData("L", "L"),
+		),
+	)
+
+	OrderPayment = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			// tgbotapi.NewInlineKeyboardButtonData("Оплата BUSD", "busd"),
+			tgbotapi.NewInlineKeyboardButtonData("Перевод на карту", "card"),
+		),
+	)
+	AdminSettings = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Что-то добавить", "add"),
+			tgbotapi.NewInlineKeyboardButtonData("Что-то удалить", "del"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Показать все", "all"),
+		),
+	)
 )
 
 func setWebhook(bot *tgbotapi.BotAPI) {
@@ -93,10 +84,6 @@ func setWebhook(bot *tgbotapi.BotAPI) {
 }
 
 func main() {
-
-	// --------- INIT STRUCTS ---------
-	OrderInfoMap = make(map[int64]*db.OrderInfo)
-
 	// --------- INIT BOT ---------
 	logger.ForString(fmt.Sprintf("OK, %v, %v", time.Now().Unix(), time.Now().Weekday()))
 	logger.ForError(BotErr)
@@ -104,6 +91,9 @@ func main() {
 
 	updates := NewBot.ListenForWebhook("/" + NewBot.Token)
 	go http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
+
+	// --------- INIT STRUCTS ---------
+	OrderInfoMap = make(map[int64]*db.OrderInfo)
 
 	// --------- MESSAGE LOOP ---------
 	for update := range updates {
