@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"/root/db"
-	"/root/logger"
-	"/root/value"
+	"verus.pictura/db"
+	"verus.pictura/logger"
+	"verus.pictura/value"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
