@@ -4,9 +4,7 @@ package main
 
 // ------------------- IMPORTS -------------------
 import (
-	"fmt"
 	"log"
-	"os"
 
 	"AnashArt.bot/db"
 	"AnashArt.bot/value"
@@ -70,14 +68,6 @@ var AdminSettings = tgbotapi.NewInlineKeyboardMarkup(
 )
 
 func main() {
-
-	// --------- INIT LOG ---------
-	file, err := os.Open("log.txt")
-	if err != nil {
-		fmt.Println("Unable to create file:", err)
-		os.Exit(1)
-	}
-	// defer file.Close()
 
 	// --------- INIT BOT ---------
 	bot, err := tgbotapi.NewBotAPI(botAPI)
@@ -200,17 +190,10 @@ func main() {
 				log.Panic("Different number of messages: ", len(messages))
 			}
 		}
-
-		saveLogs := func(msg tgbotapi.MessageConfig) {
-			data := []byte(msg.Text)
-			file.Write(data)
-		}
-
 		standartSendMessage := func(msg tgbotapi.MessageConfig) {
 			if _, err = bot.Send(msg); err != nil {
 				panic(err)
 			}
-			saveLogs(msg)
 		}
 
 		standartCallbackCheck := func() {
