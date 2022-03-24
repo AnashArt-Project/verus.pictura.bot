@@ -4,15 +4,24 @@ package main
 
 // ------------------- IMPORTS -------------------
 import (
+	"fmt"
 	"log"
+	"net/http"
+	"time"
 
 	"AnashArt.bot/db"
+	"AnashArt.bot/logger"
 	"AnashArt.bot/value"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 // ------------------- CONSTS -------------------
-const botAPI = "5267887349:AAEr95a2kk8B78h5CO2yv8E-IN9W2FxERi4"
+const CERT_PATH = "/root/WorkSpace_AnashArt_Bot/src/cert.pem"
+const KEY_PATH = "/root/WorkSpace_AnashArt_Bot/src/cert.key"
+const BOT_TOKEN = "5267887349:AAEr95a2kk8B78h5CO2yv8E-IN9W2FxERi4"
+const BOT_ADDRESS = "65.108.154.134"
+const BOT_PORT = "8443"
+const TELEGRAM_URL = "https://t.me/VerusPicturaBot"
 
 const wlankasperID = 853634511
 const anasharmsID = 726736906
@@ -67,21 +76,34 @@ var AdminSettings = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
+var (
+	NewBot, BotErr = tgbotapi.NewBotAPI(BOT_TOKEN)
+)
+
+func setWebhook(bot *tgbotapi.BotAPI) {
+	webHookInfo, err := tgbotapi.NewWebhookWithCert(fmt.Sprintf("https://%s:%s/%s", BOT_ADDRESS, BOT_PORT, BOT_TOKEN), tgbotapi.FilePath(CERT_PATH))
+	logger.ForError(err)
+	_, err = bot.Request(webHookInfo)
+	logger.ForError(err)
+	info, err := bot.GetWebhookInfo()
+	logger.ForError(err)
+	if info.LastErrorDate != 0 {
+		logger.ForString(fmt.Sprintf("Telegram callback failed: %s", info.LastErrorMessage))
+	}
+}
+
 func main() {
 
-	// --------- INIT BOT ---------
-	bot, err := tgbotapi.NewBotAPI(botAPI)
-	if err != nil {
-		log.Panic(err)
-	}
-	bot.Debug = true
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-	updates := bot.GetUpdatesChan(u)
-
-	// tree := db.Node{}
-
+	// --------- INIT STRUCTS ---------
 	OrderInfoMap = make(map[int64]*db.OrderInfo)
+
+	// --------- INIT BOT ---------
+	logger.ForString(fmt.Sprintf("OK, %v, %v", time.Now().Unix(), time.Now().Weekday()))
+	logger.ForError(BotErr)
+	setWebhook(NewBot)
+
+	updates := NewBot.ListenForWebhook("/" + NewBot.Token)
+	go http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
 
 	// --------- MESSAGE LOOP ---------
 	for update := range updates {
@@ -91,7 +113,7 @@ func main() {
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_octopus)),
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_many)),
 			})
-			messages, err := bot.SendMediaGroup(cfg)
+			messages, err := NewBot.SendMediaGroup(cfg)
 
 			if err != nil {
 				log.Panic(err)
@@ -109,7 +131,7 @@ func main() {
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Full_samurai_shrimp)),
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_many)),
 			})
-			messages, err = bot.SendMediaGroup(cfg)
+			messages, err = NewBot.SendMediaGroup(cfg)
 
 			if err != nil {
 				log.Panic(err)
@@ -132,7 +154,7 @@ func main() {
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_zoom)),
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_1_many)),
 			})
-			messages, err := bot.SendMediaGroup(cfg)
+			messages, err := NewBot.SendMediaGroup(cfg)
 
 			if err != nil {
 				log.Panic(err)
@@ -155,7 +177,7 @@ func main() {
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_zoom)),
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Product_2_many)),
 			})
-			messages, err := bot.SendMediaGroup(cfg)
+			messages, err := NewBot.SendMediaGroup(cfg)
 
 			if err != nil {
 				log.Panic(err)
@@ -176,7 +198,7 @@ func main() {
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Size_m)),
 				tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(value.Size_l)),
 			})
-			messages, err := bot.SendMediaGroup(cfg)
+			messages, err := NewBot.SendMediaGroup(cfg)
 
 			if err != nil {
 				log.Panic(err)
@@ -191,14 +213,12 @@ func main() {
 			}
 		}
 		standartSendMessage := func(msg tgbotapi.MessageConfig) {
-			if _, err = bot.Send(msg); err != nil {
-				panic(err)
-			}
+			NewBot.Send(msg)
 		}
 
 		standartCallbackCheck := func() {
 			callback := tgbotapi.NewCallback(update.CallbackQuery.ID, update.CallbackQuery.Data)
-			if _, err := bot.Request(callback); err != nil {
+			if _, err := NewBot.Request(callback); err != nil {
 				panic(err)
 			}
 		}
@@ -231,11 +251,11 @@ func main() {
 				case "show":
 					sendPhotoOctopus()
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Samurai Octopus 🐙")
-					bot.Send(msg)
+					NewBot.Send(msg)
 
 					sendPhotoShrimp()
 					msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Samurai Shrimp 🦐")
-					bot.Send(msg)
+					NewBot.Send(msg)
 
 				case "price":
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, value.Price)
@@ -252,8 +272,8 @@ func main() {
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "В скором времени с вами свяжется наш администратор ...")
 					standartSendMessage(msg)
 
-					bot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.Message.From.UserName))
-					bot.Send(tgbotapi.NewMessage(anasharmsID, "PROBLEM @"+update.Message.From.UserName))
+					NewBot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.Message.From.UserName))
+					NewBot.Send(tgbotapi.NewMessage(anasharmsID, "PROBLEM @"+update.Message.From.UserName))
 
 				case "admin":
 					if update.Message.Chat.ID == wlankasperID || update.Message.Chat.ID == anasharmsID {
@@ -308,8 +328,8 @@ func main() {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "В скором времени с вами свяжется наш администратор ...")
 				standartSendMessage(msg)
 
-				bot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.Message.From.UserName))
-				bot.Send(tgbotapi.NewMessage(anasharmsID, "PROBLEM @"+update.Message.From.UserName))
+				NewBot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.Message.From.UserName))
+				NewBot.Send(tgbotapi.NewMessage(anasharmsID, "PROBLEM @"+update.Message.From.UserName))
 
 			case "octopus":
 				orderSetPrint("Samurai Octopus 🐙")
