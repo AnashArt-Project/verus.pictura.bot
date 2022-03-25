@@ -260,7 +260,7 @@ func main() {
 					NewBot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.Message.From.UserName))
 					NewBot.Send(tgbotapi.NewMessage(anasharmsID, "PROBLEM @"+update.Message.From.UserName))
 
-				case "admin":
+				case "adminMod":
 					if update.Message.Chat.ID == wlankasperID || update.Message.Chat.ID == anasharmsID {
 						msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет Насть)")
 						msg.ReplyMarkup = AdminSettings
