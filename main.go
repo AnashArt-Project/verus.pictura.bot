@@ -203,7 +203,7 @@ func main() {
 		standartCallbackCheck := func() {
 			callback := tgbotapi.NewCallback(update.CallbackQuery.ID, update.CallbackQuery.Data)
 			if _, err := NewBot.Request(callback); err != nil {
-				panic(err)
+				logger.ForError(err)
 			}
 		}
 
@@ -228,6 +228,7 @@ func main() {
 		if update.Message != nil {
 			// ---------- Проверка команд ----------
 			if update.Message.IsCommand() {
+
 				switch update.Message.Command() {
 				case "start":
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, value.Menu)
