@@ -313,8 +313,8 @@ func main() {
 				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "В скором времени с вами свяжется наш администратор ...")
 				standartSendMessage(msg)
 
-				NewBot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.Message.From.UserName))
-				NewBot.Send(tgbotapi.NewMessage(anasharmsID, "PROBLEM @"+update.Message.From.UserName))
+				NewBot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.CallbackQuery.From.UserName))
+				NewBot.Send(tgbotapi.NewMessage(anasharmsID, "PROBLEM @"+update.CallbackQuery.From.UserName))
 
 			case "octopus":
 				orderSetPrint("Samurai Octopus 🐙")
