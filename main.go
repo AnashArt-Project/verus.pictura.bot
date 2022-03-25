@@ -310,7 +310,7 @@ func main() {
 
 			case "admin":
 				standartCallbackCheck()
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "В скором времени с вами свяжется наш администратор ...")
+				msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, "В скором времени с вами свяжется наш администратор ...")
 				standartSendMessage(msg)
 
 				NewBot.Send(tgbotapi.NewMessage(wlankasperID, "PROBLEM @"+update.Message.From.UserName))
