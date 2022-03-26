@@ -1,16 +1,31 @@
 package db
 
+import "fmt"
+
 // ---------------- Data Base ----------------
 
 // ---------------- Order Blank Struct ----------------
 type OrderInfo struct {
-	UserName    string
-	Email       string
-	Print       string
-	Size        string
-	ContactInfo string
-	Payment     string
-	Status      string
+	UserName string
+	Email    string
+	Print    string
+	Size     string
+	Phone    string
+	City     string
+	Street   string
+	House    string
+	Payment  string
+	Status   string
+}
+
+func ToStringOrderInfo(order *OrderInfo) string {
+	str := fmt.Sprintf("Email: %s\nPrint: %s\nSize: %s\nPhone: %s\nCity: %s\nStreet: %s\nHouse: %s\n", order.Email, order.Print, order.Size, order.Phone, order.City, order.Street, order.House)
+	return str
+}
+
+func ToStringAllOrderInfo(order *OrderInfo) string {
+	str := fmt.Sprintf("UserName: %s\nEmail: %s\nPrint: %s\nSize: %s\nPhone: %s\nCity: %s\nStreet: %s\nHouse: %s\nPayment: %s\nStatus: %s", order.UserName, order.Email, order.Print, order.Size, order.Phone, order.City, order.Street, order.House, order.Payment, order.Status)
+	return str
 }
 
 // ---------------- General db of Store ----------------

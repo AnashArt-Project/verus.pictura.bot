@@ -47,14 +47,35 @@ func main() {
 				case 1:
 					OrderInfoMap[update.Message.Chat.ID].Email = update.Message.Text
 
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Отлично, остался последний шаг!\n\nВведите адрес доставки и телефон в формате: \nГород,   Улица,   Дом,   Номер_телефона_для_связи")
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Контактный номер телефона:")
 					standardSendMessage(msg)
 					InputState = 2
 
 				case 2:
-					OrderInfoMap[update.Message.Chat.ID].ContactInfo = update.Message.Text
+					OrderInfoMap[update.Message.Chat.ID].Phone = update.Message.Text
 
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Отлично! Проверьте свой заказ и выберите способ оплаты\n\nВаш заказ:\nПринт - "+OrderInfoMap[update.Message.Chat.ID].Print+"\nРазмер - "+OrderInfoMap[update.Message.Chat.ID].Size+"\nEmail - "+OrderInfoMap[update.Message.Chat.ID].Email+"\nДоставка - "+OrderInfoMap[update.Message.Chat.ID].ContactInfo)
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Город: ")
+					standardSendMessage(msg)
+					InputState = 3
+
+				case 3:
+					OrderInfoMap[update.Message.Chat.ID].City = update.Message.Text
+
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Улица: ")
+					standardSendMessage(msg)
+					InputState = 4
+
+				case 4:
+					OrderInfoMap[update.Message.Chat.ID].Street = update.Message.Text
+
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Номер дома: ")
+					standardSendMessage(msg)
+					InputState = 5
+
+				case 5:
+					OrderInfoMap[update.Message.Chat.ID].House = update.Message.Text
+
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Отлично! Проверьте свой заказ и выберите способ оплаты\n\n"+db.ToStringOrderInfo(OrderInfoMap[update.Message.Chat.ID]))
 					msg.ReplyMarkup = value.OrderPayment
 					standardSendMessage(msg)
 
@@ -172,13 +193,14 @@ func checkCallback(toCallback *tgbotapi.CallbackQuery) {
 		standardCallbackCheck(*toCallback)
 
 		OrderInfoMap[toCallback.Message.Chat.ID].Payment = "Перевод на карту"
+		OrderInfoMap[toCallback.Message.Chat.ID].Status = "Ожидание оплаты"
 		msg := tgbotapi.NewMessage(toCallback.Message.Chat.ID, "Тинькофф - 5536 9140 3655 4214 (Анастасия Владимировна)\n\nПосле перевода вам напишет наш Администратор чтобы подтвердить заказ и сообщит ближайщую дату доставки")
 		standardSendMessage(msg)
 
-		msg = tgbotapi.NewMessage(value.WLANKASPER_ID, "NEW ORDER\n\nName: "+OrderInfoMap[toCallback.Message.Chat.ID].UserName+"\nEmail: "+OrderInfoMap[toCallback.Message.Chat.ID].Email+"\nAddress: "+OrderInfoMap[toCallback.Message.Chat.ID].ContactInfo+"\nPrint: "+OrderInfoMap[toCallback.Message.Chat.ID].Print+"\nSize: "+OrderInfoMap[toCallback.Message.Chat.ID].Size+"\nPayment: "+OrderInfoMap[toCallback.Message.Chat.ID].Payment+"\nStatus: "+OrderInfoMap[toCallback.Message.Chat.ID].Status)
+		msg = tgbotapi.NewMessage(value.WLANKASPER_ID, "NEW ORDER\n\n"+db.ToStringAllOrderInfo(OrderInfoMap[toCallback.Message.Chat.ID]))
 		standardSendMessage(msg)
 
-		msg = tgbotapi.NewMessage(value.ANASHARMS_ID, "NEW ORDER\n\nName: "+OrderInfoMap[toCallback.Message.Chat.ID].UserName+"\nEmail: "+OrderInfoMap[toCallback.Message.Chat.ID].Email+"\nAddress: "+OrderInfoMap[toCallback.Message.Chat.ID].ContactInfo+"\nPrint: "+OrderInfoMap[toCallback.Message.Chat.ID].Print+"\nSize: "+OrderInfoMap[toCallback.Message.Chat.ID].Size+"\nPayment: "+OrderInfoMap[toCallback.Message.Chat.ID].Payment+"\nStatus: "+OrderInfoMap[toCallback.Message.Chat.ID].Status)
+		msg = tgbotapi.NewMessage(value.ANASHARMS_ID, "NEW ORDER\n\n"+db.ToStringAllOrderInfo(OrderInfoMap[toCallback.Message.Chat.ID]))
 		standardSendMessage(msg)
 	case "busd":
 		// TODO
@@ -228,7 +250,10 @@ func standardCallbackCheck(toCallback tgbotapi.CallbackQuery) {
 func orderSetSize(size string, toCallback tgbotapi.CallbackQuery) {
 	standardCallbackCheck(toCallback)
 	OrderInfoMap[toCallback.Message.Chat.ID].Size = size
-	msg := tgbotapi.NewMessage(toCallback.Message.Chat.ID, "Теперь введите ваш email")
+	msg := tgbotapi.NewMessage(toCallback.Message.Chat.ID, "Отлично! Сейчас будем заполнять информацию для доставки ;)")
+	standardSendMessage(msg)
+
+	msg = tgbotapi.NewMessage(toCallback.Message.Chat.ID, "Контактный email:")
 	standardSendMessage(msg)
 
 	InputState = 1
