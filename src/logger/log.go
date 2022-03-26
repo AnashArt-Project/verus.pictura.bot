@@ -15,7 +15,3 @@ func ForError(er error) {
 		LogFile.Fatalln(er)
 	}
 }
-
-func ForString(st string) {
-	LogFile.Println(st)
-}
