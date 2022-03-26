@@ -22,7 +22,6 @@ var (
 func main() {
 	// logger.ForString(fmt.Sprintf("OK, %v, %v", time.Now().Unix(), time.Now().Weekday()))
 	logger.ForError(BotErr)
-
 	// ------ WEBHOOK ------
 	// setWebhook(NewBot)
 
@@ -193,8 +192,11 @@ func checkCallback(toCallback *tgbotapi.CallbackQuery) {
 		standardCallbackCheck(*toCallback)
 
 		OrderInfoMap[toCallback.Message.Chat.ID].Payment = "Перевод на карту"
-		OrderInfoMap[toCallback.Message.Chat.ID].Status = "Ожидание оплаты"
-		msg := tgbotapi.NewMessage(toCallback.Message.Chat.ID, "Тинькофф - 5536 9140 3655 4214 (Анастасия Владимировна)\n\nПосле перевода вам напишет наш Администратор чтобы подтвердить заказ и сообщит ближайщую дату доставки")
+		OrderInfoMap[toCallback.Message.Chat.ID].Status = "Ожидание оплаты + Нужно уточнить стоимость доставки!"
+
+		msg := tgbotapi.NewMessage(toCallback.Message.Chat.ID, "К оплате: 3600 + доставка\n\nТинькофф - 5536 9140 3655 4214 (Анастасия Владимировна)")
+		standardSendMessage(msg)
+		msg = tgbotapi.NewMessage(toCallback.Message.Chat.ID, "В связи с техническими проблемами сайта Почты России мы не можем автоматически расчитать стоимость доставки. В ближайшее время с вами свяжется администратор и уточнить стоимость ;)")
 		standardSendMessage(msg)
 
 		msg = tgbotapi.NewMessage(value.WLANKASPER_ID, "NEW ORDER\n\n"+db.ToStringAllOrderInfo(OrderInfoMap[toCallback.Message.Chat.ID]))
@@ -352,3 +354,20 @@ func sendPhotoSize(sendTo int64) {
 		// logger.ForString(fmt.Sprintf("Different number of messages: %v", len(messages)))
 	}
 }
+
+// func api() {
+
+// 	url := URI("https://sandbox-api.postmen.com/v3/rates")
+
+// 	http = http.get(url.host, url.port)
+// 	http.use_ssl = true
+
+// 	request := http.get(url)
+// 	request["postmen-api-key"] = "8fc7966b-679b-4a57-911d-c5a663229c9e"
+// 	request["content-type"] = "application/json"
+// 	request.body = {"async":false,"shipper_accounts":[{"id":"00000000-0000-0000-0000-000000000000"}],"shipment":{"parcels":[{"description":"Food XS","box_type":"custom","weight":{"value":2,"unit":"kg"},"dimension":{"width":20,"height":40,"depth":40,"unit":"cm"},"items":[{"description":"Food Bar","origin_country":"JPN","quantity":2,"price":{"amount":3,"currency":"JPY"},"weight":{"value":0.6,"unit":"kg"},"sku":"PS4-2015"}]}],"ship_from":{"contact_name":"Yin Ting Wong","street1":"Flat A, 29/F, Block 17\nLaguna Verde","city":"Hung Hom","state":"Kowloon","country":"HKG","phone":"96679797","email":"test@test.test","type":"residential"},"ship_to":{"contact_name":"Mike Carunchia","street1":"9504 W Smith ST","city":"Yorktown","state":"Indiana","postal_code":"47396","country":"USA","phone":"7657168649","email":"test@test.test","type":"residential"}}}
+
+// 	response = http.request(request)
+// 	puts response.read_body
+
+// }
