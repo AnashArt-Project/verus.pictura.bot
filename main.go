@@ -1,10 +1,11 @@
 package main
 
 // https://github.com/go-telegram-bot-api/telegram-bot-api
+// https://docs.postmen.com/dhl.html
 
-// ------------------- IMPORTS -------------------
 import (
 	"fmt"
+	"time"
 
 	"verus.pictura/src/db"
 	"verus.pictura/src/logger"
@@ -20,11 +21,11 @@ var (
 )
 
 func main() {
-	// logger.ForString(fmt.Sprintf("OK, %v, %v", time.Now().Unix(), time.Now().Weekday()))
+	logger.ForString(fmt.Sprintf("OK, %v, %v", time.Now().Unix(), time.Now().Weekday()))
 	logger.ForError(BotErr)
+
 	// ------ WEBHOOK ------
 	// setWebhook(NewBot)
-
 	// updates := NewBot.ListenForWebhook("/" + NewBot.Token)
 	// go http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
 
@@ -37,57 +38,16 @@ func main() {
 	OrderInfoMap = make(map[int64]*db.OrderInfo)
 
 	for update := range updates {
-
 		if update.Message != nil {
 			if update.Message.IsCommand() {
 				checkCommand(update.Message)
 			} else if InputState != 0 {
-				switch InputState {
-				case 1:
-					OrderInfoMap[update.Message.Chat.ID].Email = update.Message.Text
-
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Контактный номер телефона:")
-					standardSendMessage(msg)
-					InputState = 2
-
-				case 2:
-					OrderInfoMap[update.Message.Chat.ID].Phone = update.Message.Text
-
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Город: ")
-					standardSendMessage(msg)
-					InputState = 3
-
-				case 3:
-					OrderInfoMap[update.Message.Chat.ID].City = update.Message.Text
-
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Улица: ")
-					standardSendMessage(msg)
-					InputState = 4
-
-				case 4:
-					OrderInfoMap[update.Message.Chat.ID].Street = update.Message.Text
-
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Номер дома: ")
-					standardSendMessage(msg)
-					InputState = 5
-
-				case 5:
-					OrderInfoMap[update.Message.Chat.ID].House = update.Message.Text
-
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Отлично! Проверьте свой заказ и выберите способ оплаты\n\n"+db.ToStringOrderInfo(OrderInfoMap[update.Message.Chat.ID]))
-					msg.ReplyMarkup = value.OrderPayment
-					standardSendMessage(msg)
-
-					InputState = 0
-				}
-
+				checkInputState(update.Message)
 			} else {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Я даже не знаю как на это ответить(")
 				standardSendMessage(msg)
 			}
-		}
-
-		if update.CallbackQuery != nil {
+		} else if update.CallbackQuery != nil {
 			checkCallback(update.CallbackQuery)
 		}
 	}
@@ -148,6 +108,47 @@ func checkCommand(message *tgbotapi.Message) {
 				standardSendMessage(msg)
 			}
 		}
+	}
+}
+
+func checkInputState(message *tgbotapi.Message) {
+	switch InputState {
+	case 1:
+		OrderInfoMap[message.Chat.ID].Email = message.Text
+
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Контактный номер телефона:")
+		standardSendMessage(msg)
+		InputState = 2
+
+	case 2:
+		OrderInfoMap[message.Chat.ID].Phone = message.Text
+
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Город: ")
+		standardSendMessage(msg)
+		InputState = 3
+
+	case 3:
+		OrderInfoMap[message.Chat.ID].City = message.Text
+
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Улица: ")
+		standardSendMessage(msg)
+		InputState = 4
+
+	case 4:
+		OrderInfoMap[message.Chat.ID].Street = message.Text
+
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Номер дома: ")
+		standardSendMessage(msg)
+		InputState = 5
+
+	case 5:
+		OrderInfoMap[message.Chat.ID].House = message.Text
+
+		msg := tgbotapi.NewMessage(message.Chat.ID, "Отлично! Проверьте свой заказ и выберите способ оплаты\n\n"+db.ToStringOrderInfo(OrderInfoMap[message.Chat.ID]))
+		msg.ReplyMarkup = value.OrderPayment
+		standardSendMessage(msg)
+
+		InputState = 0
 	}
 }
 
@@ -354,20 +355,3 @@ func sendPhotoSize(sendTo int64) {
 		// logger.ForString(fmt.Sprintf("Different number of messages: %v", len(messages)))
 	}
 }
-
-// func api() {
-
-// 	url := URI("https://sandbox-api.postmen.com/v3/rates")
-
-// 	http = http.get(url.host, url.port)
-// 	http.use_ssl = true
-
-// 	request := http.get(url)
-// 	request["postmen-api-key"] = "8fc7966b-679b-4a57-911d-c5a663229c9e"
-// 	request["content-type"] = "application/json"
-// 	request.body = {"async":false,"shipper_accounts":[{"id":"00000000-0000-0000-0000-000000000000"}],"shipment":{"parcels":[{"description":"Food XS","box_type":"custom","weight":{"value":2,"unit":"kg"},"dimension":{"width":20,"height":40,"depth":40,"unit":"cm"},"items":[{"description":"Food Bar","origin_country":"JPN","quantity":2,"price":{"amount":3,"currency":"JPY"},"weight":{"value":0.6,"unit":"kg"},"sku":"PS4-2015"}]}],"ship_from":{"contact_name":"Yin Ting Wong","street1":"Flat A, 29/F, Block 17\nLaguna Verde","city":"Hung Hom","state":"Kowloon","country":"HKG","phone":"96679797","email":"test@test.test","type":"residential"},"ship_to":{"contact_name":"Mike Carunchia","street1":"9504 W Smith ST","city":"Yorktown","state":"Indiana","postal_code":"47396","country":"USA","phone":"7657168649","email":"test@test.test","type":"residential"}}}
-
-// 	response = http.request(request)
-// 	puts response.read_body
-
-// }
